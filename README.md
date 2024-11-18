@@ -35,14 +35,17 @@ View docs: [Docs](https://minikit-docs.vercel.app/mini-apps)
    - `WLD_CLIENT_SECRET`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL`
-5. Start ngrok and note the generated ngrok URL.
-6. Update `NEXTAUTH_URL` in `.env.local` with the ngrok URL.
+5. Start ngrok vith `ngrok http 3000` and note the generated ngrok URL
+6. Update `NEXTAUTH_URL` in `.env` with the ngrok URL.
 7. Start the development server using pnpm.
 8. Add the ngrok callback URL to the Worldcoin Developer Portal.
 
+... or type `just dev`.
+
 ## Debugging Tips
 - If you encounter `ERR_TOO_MANY_REDIRECTS`, check that `NEXTAUTH_URL` matches the ngrok URL and ensure cookies are not blocked.
-- Restart the server after modifying `.env.local`.
+- Restart the server after modifying `.env`.
+- INspect `ngrok` here: http://127.0.0.1:4040
 
 ## Common Commands
 - Clone the repository: `git clone`
