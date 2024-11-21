@@ -1,13 +1,27 @@
+# NFT Inventory - Universal Game Assets Manager
+
+## About this App
+
+NFT Inventory is a World App mini-app that provides a universal hub for managing game-related NFTs across different platforms and games. It serves as a centralized inventory system for both current in-game assets and future game items.
+
+### Key Features
+- **Cross-Game Asset Management**: Seamlessly manage NFTs from multiple games in one interface
+- **Human Verification**: Secure access through World ID verification ensures genuine ownership
+- **Future Asset Support**: Track and manage both existing and upcoming game assets
+- **Universal Compatibility**: Works across different gaming platforms and blockchains
+- **Intuitive Interface**: Gaming-inspired design with easy-to-use inventory management
+
+### Target Users
+- Gamers with assets across multiple games
+- NFT collectors focused on gaming assets
+- Game developers implementing cross-game assets
+- Players interested in future game releases
+
+### Vision
+NFT Inventory aims to solve the fragmentation in gaming asset management by providing a unified, secure platform for tracking and managing game-related NFTs. Our goal is to become the standard tool for cross-game asset management in the Web3 gaming ecosystem.
+
 
 ## Setup
-
-
-```bash
-cp .env.example .env
-pnpm i 
-pnpm dev
-
-```
 
 To run as a mini app choose a production app in the dev portal and use NGROK to tunnel. Set the `NEXTAUTH_URL` and the redirect url if using sign in with worldcoin to that ngrok url 
 
