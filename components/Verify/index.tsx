@@ -8,80 +8,98 @@ import {
 } from "@worldcoin/minikit-js";
 import { useState, useEffect } from "react";
 
-export const VerifyBlock = () => {
-  const [isVerifying, setIsVerifying] = useState(false);
+interface VerifyBlockProps {
+  onVerificationSuccess: (verificationData: any) => void;
+}
 
-  const triggerVerify = () => {
+export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [miniKitAvailable, setMiniKitAvailable] = useState(false);
+
+  const triggerVerify = async () => {
     setIsVerifying(true);
     const verifyPayload = {
-      action: "user-verification-for-inventory", 
+      action: "user-verification-for-inventory",
       signal: "",
       verification_level: VerificationLevel.Orb,
     };
+
     console.log("Triggering verification with payload:", verifyPayload);
-    const result = MiniKit.commands.verify(verifyPayload);
-    console.log("MiniKit.commands.verify result:", result);
+    try {
+      const result = await MiniKit.commands.verify(verifyPayload);
+      console.log("MiniKit.commands.verify result:", result);
+    } catch (error) {
+      console.error("Error during verification:", error);
+      setIsVerifying(false);
+    }
   };
-  
 
   useEffect(() => {
+    console.log("Checking MiniKit installation...");
     if (!MiniKit.isInstalled()) {
       console.error("MiniKit is not installed");
       return;
     }
+    console.log("MiniKit is installed, setting up subscription...");
 
     MiniKit.subscribe(
       ResponseEvent.MiniAppVerifyAction,
       async (response: MiniAppVerifyActionPayload) => {
-        console.log("Received MiniAppVerifyAction response:", response);
+        console.log("Raw response:", response);
 
-        if (response.status === "error") {
-          console.error("Verification failed with error:", response);
-          setIsVerifying(false);
-          return;
-        }
+        if ("status" in response) {
+          console.log("Status found in response:", response.status);
 
-        console.log("Sending payload to backend for verification...");
-        try {
-          const verifyResponse = await fetch("/api/verify", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              payload: response as ISuccessResult,
-              action: "user-verification-for-inventory", // Replace with your action ID
-              signal: "", // Optional signal, adjust if necessary
-            }),
-          });
+          if (response.status === "success") {
+            console.log("Success response data:", response);
+            try {
+              const verifyResponse = await fetch("/api/verify", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  payload: response,
+                  action: "user-verification-for-inventory",
+                  signal: "",
+                }),
+              });
 
-          const verifyResponseJson = await verifyResponse.json();
-          console.log("Backend verification response:", verifyResponseJson);
+              if (!verifyResponse.ok) {
+                throw new Error(`HTTP error! status: ${verifyResponse.status}`);
+              }
 
-          if (verifyResponseJson.status === 200) {
-            console.log("Verification success!");
+              const verifyResponseJson = await verifyResponse.json();
+              console.log("Backend verification response:", verifyResponseJson);
+              onVerificationSuccess(verifyResponseJson); // Added this line to trigger the callback
+            } catch (error) {
+              console.error("Error during backend verification:", error);
+            }
           } else {
-            console.error("Backend verification failed:", verifyResponseJson);
+            console.error("Verification failed:", response);
           }
-        } catch (error) {
-          console.error("Error during backend verification:", error);
-        } finally {
-          setIsVerifying(false);
+        } else {
+          console.error("Unexpected response format:", response);
         }
+
+        setIsVerifying(false);
       }
     );
 
     return () => {
       MiniKit.unsubscribe(ResponseEvent.MiniAppVerifyAction);
     };
-  }, []);
+  }, [onVerificationSuccess]); // Added onVerificationSuccess to dependency array
 
   return (
     <div>
       <h1>Verify Block</h1>
       <button
         className={`bg-green-500 p-4 ${isVerifying ? "opacity-50" : ""}`}
-        onClick={triggerVerify}
+        onClick={(e) => {
+          e.preventDefault();
+          triggerVerify().catch(console.error);
+        }}
         disabled={isVerifying}
       >
         {isVerifying ? "Verifying..." : "Test Verify"}
