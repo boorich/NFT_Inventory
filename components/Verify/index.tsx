@@ -7,6 +7,8 @@ import {
   ISuccessResult,
 } from "@worldcoin/minikit-js";
 import { useState, useEffect } from "react";
+import { GameButton } from "../ui/game-button";
+import { motion } from "framer-motion";
 
 interface VerifyBlockProps {
   onVerificationSuccess: (verificationData: any) => void;
@@ -71,7 +73,7 @@ export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
 
               const verifyResponseJson = await verifyResponse.json();
               console.log("Backend verification response:", verifyResponseJson);
-              onVerificationSuccess(verifyResponseJson); // Added this line to trigger the callback
+              onVerificationSuccess(verifyResponseJson);
             } catch (error) {
               console.error("Error during backend verification:", error);
             }
@@ -89,21 +91,42 @@ export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
     return () => {
       MiniKit.unsubscribe(ResponseEvent.MiniAppVerifyAction);
     };
-  }, [onVerificationSuccess]); // Added onVerificationSuccess to dependency array
+  }, [onVerificationSuccess]);
 
   return (
-    <div>
-      <h1>Verify Block</h1>
-      <button
-        className={`bg-green-500 p-4 ${isVerifying ? "opacity-50" : ""}`}
+    <motion.div 
+      className="flex flex-col items-center gap-4"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="text-center space-y-3">
+        <motion.div
+          className="inline-block p-3 bg-indigo-100 rounded-full"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className="text-2xl">🔐</span>
+        </motion.div>
+      </div>
+
+      <GameButton
+        variant="primary"
+        size="lg"
         onClick={(e) => {
           e.preventDefault();
           triggerVerify().catch(console.error);
         }}
         disabled={isVerifying}
+        isLoading={isVerifying}
       >
-        {isVerifying ? "Verifying..." : "Test Verify"}
-      </button>
-    </div>
+        {isVerifying ? "Verifying..." : "Verify with World ID"}
+      </GameButton>
+
+      {!miniKitAvailable && (
+        <p className="text-sm text-red-500 text-center mt-2">
+          Please open this app in World App to verify
+        </p>
+      )}
+    </motion.div>
   );
 };

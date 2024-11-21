@@ -1,85 +1,176 @@
+// app/page.tsx
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { PayBlock } from "@/components/Pay";
 import { SignIn } from "@/components/SignIn";
 import { VerifyBlock } from "@/components/Verify";
 import { NFTInventory } from "@/components/NFTInventory/NFTInventory";
+import { InventoryAuth } from "@/components/InventoryAuth/InventoryAuth";
+import { EnhancedFeatures } from "@/components/EnhancedFeatures/EnhancedFeatures";
+import { GameButton } from "@/components/ui/game-button";
 
 export default function Home() {
-  const [isVerified, setIsVerified] = useState(false);
+  const { data: session } = useSession();
+  const [isHumanVerified, setIsHumanVerified] = useState(false);
   const [verificationData, setVerificationData] = useState<any>(null);
 
   const handleVerificationSuccess = (data: any) => {
-    console.log("Verification successful:", data);
+    console.log("World ID verification successful:", data);
     setVerificationData(data);
-    setIsVerified(true);
+    setIsHumanVerified(true);
+  };
+
+  const hasFullAccess = session && isHumanVerified;
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
   };
 
   return (
-    <main className="min-h-screen p-8">
+    <motion.main
+      className="min-h-screen p-8 bg-gradient-to-b from-slate-50 to-slate-100"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
+        {/* Header Section */}
+        <motion.div 
+          className="text-center mb-12"
+          variants={itemVariants}
+        >
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Cross-Game NFT Inventory Manager
+            Universal Game Assets Hub
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Your universal hub for managing game assets across different universes. 
-            Store, track, and organize your in-game NFTs and future game assets in one place.
+            Your cross-game inventory awaits. Manage all your digital assets in one secure location.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-3">Why Use Our Platform?</h2>
-            <ul className="space-y-2 text-gray-600">
-              <li>✨ Manage NFTs across multiple games</li>
-              <li>🎮 Track both current and future game assets</li>
-              <li>🔒 Secure verification with World ID</li>
-              <li>🌐 Universal inventory system</li>
-            </ul>
-          </div>
+        {/* Feature Grid */}
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+          variants={itemVariants}
+        >
+          {[
+            {
+              icon: "🎮",
+              title: "Cross-Game Support",
+              description: "One inventory for all your games"
+            },
+            {
+              icon: "🔒",
+              title: "Secure Access",
+              description: "Protected by World ID verification"
+            },
+            {
+              icon: "🌐",
+              title: "Universal Access",
+              description: "Available anywhere in the World App"
+            }
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg"
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span className="text-2xl mb-2 block">{feature.icon}</span>
+              <h3 className="font-bold mb-2">{feature.title}</h3>
+              <p className="text-sm text-gray-600">{feature.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-3">Getting Started</h2>
-            <ul className="space-y-2 text-gray-600">
-              <li>1. Sign in with your account</li>
-              <li>2. Verify your identity</li>
-              <li>3. Access your universal inventory</li>
-              <li>4. Start managing your game assets</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          {!isVerified ? (
-            <>
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-4">Access Your Inventory</h2>
-                <p className="text-gray-600 mb-6">
-                  Please complete these steps to access your universal game inventory
-                </p>
-              </div>
-              <div className="max-w-md mx-auto space-y-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">1. Sign In</h3>
-                  <SignIn />
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">2. Verify Identity</h3>
-                  <VerifyBlock onVerificationSuccess={handleVerificationSuccess} />
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">3. Payment Options</h3>
-                  <PayBlock />
-                </div>
-              </div>
-            </>
+        {/* Main Content */}
+        <AnimatePresence mode="wait">
+          {hasFullAccess ? (
+            <motion.div
+              key="inventory"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <NFTInventory isVerified={true} />
+            </motion.div>
           ) : (
-            <NFTInventory isVerified={isVerified} />
+            <motion.div
+              key="auth"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <InventoryAuth 
+                onVerificationSuccess={handleVerificationSuccess}
+                isVerifying={false}
+              >
+                <div className="space-y-6">
+                  {!session && (
+                    <motion.div
+                      variants={itemVariants}
+                      className="bg-white/50 backdrop-blur-sm rounded-xl p-6"
+                    >
+                      <h3 className="text-lg font-semibold mb-4">Connect Your Account</h3>
+                      <SignIn />
+                    </motion.div>
+                  )}
+                  
+                  {!isHumanVerified && (
+                    <motion.div
+                      variants={itemVariants}
+                      className="bg-white/50 backdrop-blur-sm rounded-xl p-6"
+                    >
+                      <h3 className="text-lg font-semibold mb-4">Verify Your Identity</h3>
+                      <VerifyBlock onVerificationSuccess={handleVerificationSuccess} />
+                    </motion.div>
+                  )}
+                </div>
+              </InventoryAuth>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
+
+        {/* Enhanced Features Section */}
+        <motion.div
+          variants={itemVariants}
+          className="mt-12"
+        >
+          <EnhancedFeatures />
+        </motion.div>
+
+        {/* Footer Status */}
+        <motion.div
+          variants={itemVariants}
+          className="mt-8 text-center text-sm text-gray-500"
+        >
+          <p>Currently in beta • Built with World ID MiniKit v1.2.0</p>
+        </motion.div>
       </div>
-    </main>
+    </motion.main>
   );
 }

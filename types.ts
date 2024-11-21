@@ -7,6 +7,7 @@ export interface GameNFT {
     rarity: string;
     status: 'In-Game' | 'Future Asset';
     image: string;
+    description: string;
   }
   
   export interface NFTInventoryProps {

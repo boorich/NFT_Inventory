@@ -2,142 +2,195 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { GameNFT, NFTInventoryProps } from "@/types";
+import { motion } from "framer-motion";
+import { Search, Filter, Grid3X3, List } from "lucide-react";
+import type { GameNFT } from "@/types";
 
-export function NFTInventory({ isVerified }: NFTInventoryProps) {
-  const [inventory, setInventory] = useState<GameNFT[]>([]);
+const MOCK_NFTS: GameNFT[] = [
+  {
+    id: "1",
+    name: "Celestial Blade of the Eternal",
+    game: "Skyforge Legends",
+    type: "Weapon",
+    rarity: "Mythical",
+    status: "In-Game",
+    image: "/images/nfts/1.webp",
+    description: "A legendary sword that channels celestial energy"
+  },
+  {
+    id: "2",
+    name: "Swift Shadowmere Mount",
+    game: "Realm of Shadows",
+    type: "Mount",
+    rarity: "Epic",
+    status: "In-Game",
+    image: "/images/nfts/2.webp",
+    description: "A mythical steed with unmatched speed"
+  },
+  {
+    id: "3",
+    name: "Dragon's Heart Amulet",
+    game: "Dragon Saga Online",
+    type: "Accessory",
+    rarity: "Legendary",
+    status: "Future Asset",
+    image: "/images/nfts/3.webp",
+    description: "Contains the power of an ancient dragon"
+  },
+  {
+    id: "4",
+    name: "Quantum Pulse Rifle",
+    game: "Neon Frontier 2077",
+    type: "Weapon",
+    rarity: "Rare",
+    status: "In-Game",
+    image: "/images/nfts/4.webp",
+    description: "Next-gen energy weapon with quantum capabilities"
+  },
+  {
+    id: "5",
+    name: "Mecha Titan Armor Set",
+    game: "Mech Warriors Rising",
+    type: "Armor",
+    rarity: "Epic",
+    status: "Future Asset",
+    image: "/images/nfts/5.webp",
+    description: "Full-body combat suit with advanced AI integration"
+  },
+  {
+    id: "6",
+    name: "Ancient Spellbook",
+    game: "Mystic Realms",
+    type: "Spell Item",
+    rarity: "Legendary",
+    status: "In-Game",
+    image: "/images/nfts/6.webp",
+    description: "Contains forbidden knowledge of the old world"
+  }
+];
+
+const RARITY_COLORS = {
+  Common: "bg-gray-100",
+  Uncommon: "bg-green-100",
+  Rare: "bg-blue-100",
+  Epic: "bg-purple-100",
+  Legendary: "bg-orange-100",
+  Mythical: "bg-red-100"
+};
+
+export function NFTInventory({ isVerified }: { isVerified: boolean }) {
+  const [inventory, setInventory] = useState<GameNFT[]>(MOCK_NFTS);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
-
-  useEffect(() => {
-    if (isVerified) {
-      fetchNFTs().catch(console.error);
-    }
-  }, [isVerified]);
-
-  const fetchNFTs = async () => {
-    try {
-      const response = await fetch('/api/nfts');
-      if (!response.ok) throw new Error('Failed to fetch NFTs');
-      const data = await response.json();
-      setInventory(data);
-    } catch (error) {
-      console.error('Error fetching NFTs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [activeFilter, setActiveFilter] = useState('all');
 
   const FilterBar = () => (
-    <div className="flex items-center gap-4 p-4 bg-gray-100 rounded-lg mb-4">
+    <div className="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-sm rounded-lg mb-4 shadow-sm">
       <div className="flex-1">
         <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
           <input
             type="text"
             placeholder="Search assets..."
-            className="pl-10 p-2 w-full rounded-md border border-gray-300"
+            className="pl-10 p-2 w-full rounded-md border border-gray-200 bg-white/70"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
-      <button className="flex items-center gap-2 p-2 border rounded-md">
-        Filters
-      </button>
-      <div className="flex gap-2 border rounded-md p-1">
+      <div className="flex gap-2">
         <button
-          className={`p-1 rounded ${viewMode === 'grid' ? 'bg-gray-200' : ''}`}
+          className={`p-2 rounded-md border ${viewMode === 'grid' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}
           onClick={() => setViewMode('grid')}
         >
-          Grid
+          <Grid3X3 className="h-5 w-5 text-gray-600" />
         </button>
         <button
-          className={`p-1 rounded ${viewMode === 'list' ? 'bg-gray-200' : ''}`}
+          className={`p-2 rounded-md border ${viewMode === 'list' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}
           onClick={() => setViewMode('list')}
         >
-          List
+          <List className="h-5 w-5 text-gray-600" />
         </button>
       </div>
     </div>
   );
 
   const NFTGrid = ({ items }: { items: GameNFT[] }) => (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
       {items.map((nft) => (
-        <div key={nft.id} className="bg-white rounded-lg shadow overflow-hidden">
-          <img src={nft.image} alt={nft.name} className="w-full h-48 object-cover" />
-          <div className="p-4">
-            <h3 className="font-bold text-lg">{nft.name}</h3>
-            <div className="text-sm text-gray-500">
-              <p>Game: {nft.game}</p>
-              <p>Type: {nft.type}</p>
-              <p>Status: {nft.status}</p>
+        <motion.div
+          key={nft.id}
+          className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+          whileHover={{ scale: 1.02 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="aspect-square relative overflow-hidden bg-gray-100">
+            <img src={nft.image} alt={nft.name} className="w-full h-full object-cover" />
+            <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${RARITY_COLORS[nft.rarity as keyof typeof RARITY_COLORS]}`}>
+              {nft.rarity}
             </div>
           </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const NFTList = ({ items }: { items: GameNFT[] }) => (
-    <div className="space-y-2">
-      {items.map((nft) => (
-        <div key={nft.id} className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center gap-4">
-            <img src={nft.image} alt={nft.name} className="w-16 h-16 object-cover rounded" />
-            <div>
-              <h3 className="font-bold">{nft.name}</h3>
-              <div className="text-sm text-gray-500">
-                <p>Game: {nft.game} | Type: {nft.type} | Status: {nft.status}</p>
+          <div className="p-4">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-bold text-lg leading-tight">{nft.name}</h3>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">{nft.description}</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                  {nft.game}
+                </span>
+                <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                  {nft.type}
+                </span>
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  nft.status === 'Future Asset' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'
+                }`}>
+                  {nft.status}
+                </span>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
 
   return (
-    <div className="w-full bg-white rounded-lg shadow">
+    <div className="w-full max-w-7xl mx-auto bg-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
+      <div className="p-6 border-b border-gray-200 bg-white/70">
+        <h2 className="text-2xl font-bold text-gray-800">Game Assets Inventory</h2>
+        <p className="text-gray-600">Manage your cross-game NFT collection</p>
+      </div>
+
       <div className="p-6">
-        <h2 className="text-2xl font-bold mb-6">Game Assets Manager</h2>
+        <FilterBar />
         
-        <div className="mb-6">
-          <div className="flex gap-4 border-b">
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+          {['All', 'Weapons', 'Armor', 'Mounts', 'Accessories'].map((filter) => (
             <button
-              className={`px-4 py-2 ${activeTab === 'all' ? 'border-b-2 border-blue-500' : ''}`}
-              onClick={() => setActiveTab('all')}
+              key={filter}
+              className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                activeFilter === filter.toLowerCase()
+                  ? 'bg-indigo-100 text-indigo-700'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+              onClick={() => setActiveFilter(filter.toLowerCase())}
             >
-              All Games
+              {filter}
             </button>
-            <button
-              className={`px-4 py-2 ${activeTab === 'in-game' ? 'border-b-2 border-blue-500' : ''}`}
-              onClick={() => setActiveTab('in-game')}
-            >
-              In-Game Assets
-            </button>
-            <button
-              className={`px-4 py-2 ${activeTab === 'future' ? 'border-b-2 border-blue-500' : ''}`}
-              onClick={() => setActiveTab('future')}
-            >
-              Future Assets
-            </button>
-          </div>
+          ))}
         </div>
 
-        {activeTab === 'all' && (
-          <>
-            <FilterBar />
-            {loading ? (
-              <div className="text-center py-8">Loading your inventory...</div>
-            ) : (
-              viewMode === 'grid' ? 
-                <NFTGrid items={inventory} /> : 
-                <NFTList items={inventory} />
-            )}
-          </>
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading your inventory...</p>
+          </div>
+        ) : (
+          <NFTGrid items={inventory} />
         )}
       </div>
     </div>
