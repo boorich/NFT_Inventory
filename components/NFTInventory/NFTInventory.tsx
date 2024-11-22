@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Grid3X3, List } from "lucide-react";
 import type { GameNFT } from "@/types";
+import { FlippableCard } from "../NFTCard/FlippableCard"; 
 
 const MOCK_NFTS: GameNFT[] = [
   {
@@ -119,41 +120,7 @@ export function NFTInventory({ isVerified }: { isVerified: boolean }) {
   const NFTGrid = ({ items }: { items: GameNFT[] }) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
       {items.map((nft) => (
-        <motion.div
-          key={nft.id}
-          className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-          whileHover={{ scale: 1.02 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="aspect-square relative overflow-hidden bg-gray-100">
-            <img src={nft.image} alt={nft.name} className="w-full h-full object-cover" />
-            <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${RARITY_COLORS[nft.rarity as keyof typeof RARITY_COLORS]}`}>
-              {nft.rarity}
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-bold text-lg leading-tight">{nft.name}</h3>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">{nft.description}</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
-                  {nft.game}
-                </span>
-                <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
-                  {nft.type}
-                </span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  nft.status === 'Future Asset' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'
-                }`}>
-                  {nft.status}
-                </span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        <FlippableCard key={nft.id} nft={nft} />
       ))}
     </div>
   );
