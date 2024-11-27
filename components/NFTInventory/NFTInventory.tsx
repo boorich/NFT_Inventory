@@ -5,7 +5,12 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Grid3X3, List } from "lucide-react";
 import type { GameNFT } from "@/types";
-import { FlippableCard } from "../NFTCard/FlippableCard"; 
+import { FlippableCard } from "../NFTCard/FlippableCard";
+import {
+  fetchWorldcoinNFTs,
+  WorldcoinChainError,
+  NFTFetchError,
+} from "@/utils/world-chain";
 
 const MOCK_NFTS: GameNFT[] = [
   {
@@ -16,7 +21,7 @@ const MOCK_NFTS: GameNFT[] = [
     rarity: "Mythical",
     status: "In-Game",
     image: "/images/nfts/1.webp",
-    description: "A legendary sword that channels celestial energy"
+    description: "A legendary sword that channels celestial energy",
   },
   {
     id: "2",
@@ -26,7 +31,7 @@ const MOCK_NFTS: GameNFT[] = [
     rarity: "Epic",
     status: "In-Game",
     image: "/images/nfts/2.webp",
-    description: "A mythical steed with unmatched speed"
+    description: "A mythical steed with unmatched speed",
   },
   {
     id: "3",
@@ -36,7 +41,7 @@ const MOCK_NFTS: GameNFT[] = [
     rarity: "Legendary",
     status: "Future Asset",
     image: "/images/nfts/3.webp",
-    description: "Contains the power of an ancient dragon"
+    description: "Contains the power of an ancient dragon",
   },
   {
     id: "4",
@@ -46,7 +51,7 @@ const MOCK_NFTS: GameNFT[] = [
     rarity: "Rare",
     status: "In-Game",
     image: "/images/nfts/4.webp",
-    description: "Next-gen energy weapon with quantum capabilities"
+    description: "Next-gen energy weapon with quantum capabilities",
   },
   {
     id: "5",
@@ -56,7 +61,7 @@ const MOCK_NFTS: GameNFT[] = [
     rarity: "Epic",
     status: "Future Asset",
     image: "/images/nfts/5.webp",
-    description: "Full-body combat suit with advanced AI integration"
+    description: "Full-body combat suit with advanced AI integration",
   },
   {
     id: "6",
@@ -66,8 +71,8 @@ const MOCK_NFTS: GameNFT[] = [
     rarity: "Legendary",
     status: "In-Game",
     image: "/images/nfts/6.webp",
-    description: "Contains forbidden knowledge of the old world"
-  }
+    description: "Contains forbidden knowledge of the old world",
+  },
 ];
 
 const RARITY_COLORS = {
@@ -76,15 +81,87 @@ const RARITY_COLORS = {
   Rare: "bg-blue-100",
   Epic: "bg-purple-100",
   Legendary: "bg-orange-100",
-  Mythical: "bg-red-100"
+  Mythical: "bg-red-100",
 };
 
-export function NFTInventory({ isVerified }: { isVerified: boolean }) {
-  const [inventory, setInventory] = useState<GameNFT[]>(MOCK_NFTS);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+// export function NFTInventory({ isVerified }: { isVerified: boolean }) {
+//   const [inventory, setInventory] = useState<GameNFT[]>(MOCK_NFTS);
+//   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+//   const [loading, setLoading] = useState(false);
+//   const [searchTerm, setSearchTerm] = useState('');
+//   const [activeFilter, setActiveFilter] = useState('all');
+
+//   const FilterBar = () => (
+//     <div className="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-sm rounded-lg mb-4 shadow-sm">
+//       <div className="flex-1">
+//         <div className="relative">
+//           <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+//           <input
+//             type="text"
+//             placeholder="Search assets..."
+//             className="pl-10 p-2 w-full rounded-md border border-gray-200 bg-white/70"
+//             value={searchTerm}
+//             onChange={(e) => setSearchTerm(e.target.value)}
+//           />
+//         </div>
+//       </div>
+//       <div className="flex gap-2">
+//         <button
+//           className={`p-2 rounded-md border ${viewMode === 'grid' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}
+//           onClick={() => setViewMode('grid')}
+//         >
+//           <Grid3X3 className="h-5 w-5 text-gray-600" />
+//         </button>
+//         <button
+//           className={`p-2 rounded-md border ${viewMode === 'list' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}
+//           onClick={() => setViewMode('list')}
+//         >
+//           <List className="h-5 w-5 text-gray-600" />
+//         </button>
+//       </div>
+//     </div>
+//   );
+
+export function NFTInventory({
+  isVerified,
+  address,
+}: {
+  isVerified: boolean;
+  address: string;
+}) {
+  const [inventory, setInventory] = useState<GameNFT[]>([]);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  useEffect(() => {
+    async function loadNFTs() {
+      if (!isVerified || !address) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const nfts = await fetchWorldcoinNFTs(address);
+        setInventory(nfts);
+      } catch (err) {
+        console.error("Failed to fetch NFTs:", err);
+        if (err instanceof WorldcoinChainError) {
+          setError("Failed to connect to Worldcoin chain. Please try again.");
+        } else if (err instanceof NFTFetchError) {
+          setError("Failed to fetch NFTs. Please try again.");
+        } else {
+          setError("An unexpected error occurred. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadNFTs();
+  }, [isVerified, address]);
 
   const FilterBar = () => (
     <div className="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-sm rounded-lg mb-4 shadow-sm">
@@ -102,14 +179,22 @@ export function NFTInventory({ isVerified }: { isVerified: boolean }) {
       </div>
       <div className="flex gap-2">
         <button
-          className={`p-2 rounded-md border ${viewMode === 'grid' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}
-          onClick={() => setViewMode('grid')}
+          className={`p-2 rounded-md border ${
+            viewMode === "grid"
+              ? "bg-indigo-50 border-indigo-200"
+              : "bg-white border-gray-200"
+          }`}
+          onClick={() => setViewMode("grid")}
         >
           <Grid3X3 className="h-5 w-5 text-gray-600" />
         </button>
         <button
-          className={`p-2 rounded-md border ${viewMode === 'list' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}
-          onClick={() => setViewMode('list')}
+          className={`p-2 rounded-md border ${
+            viewMode === "list"
+              ? "bg-indigo-50 border-indigo-200"
+              : "bg-white border-gray-200"
+          }`}
+          onClick={() => setViewMode("list")}
         >
           <List className="h-5 w-5 text-gray-600" />
         </button>
@@ -128,33 +213,47 @@ export function NFTInventory({ isVerified }: { isVerified: boolean }) {
   return (
     <div className="w-full max-w-7xl mx-auto bg-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
       <div className="p-6 border-b border-gray-200 bg-white/70">
-        <h2 className="text-2xl font-bold text-gray-800">Game Assets Inventory</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          Game Assets Inventory
+        </h2>
         <p className="text-gray-600">Manage your cross-game NFT collection</p>
       </div>
 
       <div className="p-6">
         <FilterBar />
-        
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            {error}
+          </div>
+        )}
+
         <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-          {['All', 'Weapons', 'Armor', 'Mounts', 'Accessories'].map((filter) => (
-            <button
-              key={filter}
-              className={`px-4 py-2 rounded-full whitespace-nowrap ${
-                activeFilter === filter.toLowerCase()
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-              onClick={() => setActiveFilter(filter.toLowerCase())}
-            >
-              {filter}
-            </button>
-          ))}
+          {["All", "Weapons", "Armor", "Mounts", "Accessories"].map(
+            (filter) => (
+              <button
+                key={filter}
+                className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                  activeFilter === filter.toLowerCase()
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+                onClick={() => setActiveFilter(filter.toLowerCase())}
+              >
+                {filter}
+              </button>
+            )
+          )}
         </div>
 
         {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading your inventory...</p>
+          </div>
+        ) : inventory.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600">No NFTs found in your Worldcoin wallet.</p>
           </div>
         ) : (
           <NFTGrid items={inventory} />
