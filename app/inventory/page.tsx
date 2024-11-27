@@ -8,17 +8,19 @@ import { NFTInventory } from "@/components/NFTInventory/NFTInventory";
 export default function InventoryPage() {
   const [isVerified, setIsVerified] = useState(false);
   const [verificationData, setVerificationData] = useState<any>(null);
-  const [walletAddress, setWalletAddress] = useState<string>("");
+  const [worldcoinAddress, setWorldcoinAddress] = useState<string>("");
 
   const handleVerificationSuccess = (data: any) => {
-    console.log("Verification successful:", data);
+    console.log("Verification successful with data:", data);
     setVerificationData(data);
     setIsVerified(true);
     
-    // You'll need to get the wallet address from the World ID verification
-    // This will depend on how you've implemented the VerifyBlock component
-    if (data.address) {
-      setWalletAddress(data.address);
+    // Extract address from verification data
+    if (data.worldcoinAddress) {
+      console.log("Setting Worldcoin address:", data.worldcoinAddress);
+      setWorldcoinAddress(data.worldcoinAddress);
+    } else {
+      console.warn("No worldcoinAddress found in verification data:", data);
     }
   };
 
@@ -28,13 +30,13 @@ export default function InventoryPage() {
         {!isVerified ? (
           <>
             <h2 className="text-2xl font-bold mb-4">Game Assets Inventory</h2>
-            <p className="mb-4">Please verify with World ID to view your NFTs on Worldcoin chain.</p>
+            <p className="mb-4">Please verify with World ID to continue.</p>
             <VerifyBlock onVerificationSuccess={handleVerificationSuccess} />
           </>
         ) : (
           <NFTInventory 
             isVerified={isVerified} 
-            address={walletAddress}
+            worldcoinAddress={worldcoinAddress}
           />
         )}
       </div>

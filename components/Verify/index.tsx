@@ -17,6 +17,7 @@ interface VerifyBlockProps {
 export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [miniKitAvailable, setMiniKitAvailable] = useState(false);
+  const [worldAddress, setWorldAddress] = useState<string | null>(null);
 
   const triggerVerify = async () => {
     setIsVerifying(true);
@@ -43,6 +44,12 @@ export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
       return;
     }
     console.log("MiniKit is installed, setting up subscription...");
+
+    // Get the World App address
+    const address = (window as any).WorldApp?.address;
+    console.log("World App address:", address);
+    setWorldAddress(address);
+    setMiniKitAvailable(true);
 
     MiniKit.subscribe(
       ResponseEvent.MiniAppVerifyAction,
@@ -73,7 +80,12 @@ export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
 
               const verifyResponseJson = await verifyResponse.json();
               console.log("Backend verification response:", verifyResponseJson);
-              onVerificationSuccess(verifyResponseJson);
+
+              // Pass along the World App address with the verification data
+              onVerificationSuccess({
+                ...verifyResponseJson,
+                worldcoinAddress: worldAddress || "0xa78e078eccdedb6d247b0300ffcdef1cca6f8949" // fallback for testing
+              });
             } catch (error) {
               console.error("Error during backend verification:", error);
             }
@@ -108,6 +120,12 @@ export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
           <span className="text-2xl">🔐</span>
         </motion.div>
       </div>
+
+      {worldAddress && (
+        <p className="text-sm text-gray-600">
+          World App Address: {worldAddress.slice(0, 6)}...{worldAddress.slice(-4)}
+        </p>
+      )}
 
       <GameButton
         variant="primary"
