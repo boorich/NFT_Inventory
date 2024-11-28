@@ -8,6 +8,7 @@ export interface GameNFT {
     status: 'In-Game' | 'Future Asset';
     image: string;
     description: string;
+    balance?: string;
   }
   
   export interface NFTInventoryProps {

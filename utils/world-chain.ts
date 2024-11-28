@@ -1,28 +1,22 @@
-// utils/worldcoin-chain.ts
 import { ethers } from 'ethers';
 import type { GameNFT } from '@/types';
 
-// Constants for Worldcoin chain
 export const WORLDCOIN_CHAIN_CONFIG = {
-  RPC_URL: "worldchain-sepolia.g.alchemy.com/public", 
+  RPC_URL: "https://worldchain-sepolia.g.alchemy.com/public",
   CHAIN_ID: 4801,
   CHAIN_NAME: "wcsep",
-  NFT_CONTRACT_ADDRESS: "0x8253d2737604D0b82d024c544f3Ee48BFb1071e7"
+  NFT_CONTRACT_ADDRESS: "0x9E92019881d5dE556a9C75A9e846dead8C1aa236"
 };
 
-// ERC1155 minimal ABI for balanceOf and URI
 const ERC1155_ABI = [
   "function balanceOf(address account, uint256 id) view returns (uint256)",
-  "function uri(uint256 id) view returns (string)",
-  "function gameItems(uint256) view returns (string name, string game, string itemType, string rarity, uint256 maxSupply)"
+  "function uri(uint256 id) view returns (string)"
 ];
 
-// Initialize provider
 export const getProvider = () => {
   return new ethers.JsonRpcProvider(WORLDCOIN_CHAIN_CONFIG.RPC_URL);
 };
 
-// Initialize contract
 export const getNFTContract = (provider: ethers.Provider) => {
   return new ethers.Contract(
     WORLDCOIN_CHAIN_CONFIG.NFT_CONTRACT_ADDRESS,
@@ -33,28 +27,29 @@ export const getNFTContract = (provider: ethers.Provider) => {
 
 export async function fetchWorldcoinNFTs(address: string): Promise<GameNFT[]> {
   try {
+    console.log("Fetching NFTs for address:", address);
     const provider = getProvider();
     const contract = getNFTContract(provider);
     const nfts: GameNFT[] = [];
 
-    // We'll check tokens 0-10 for demonstration
-    for (let tokenId = 0; tokenId < 10; tokenId++) {
+    const tokenIdsToCheck = [1, 50];
+    
+    for (const tokenId of tokenIdsToCheck) {
       try {
+        console.log(`Checking balance for token ${tokenId}`);
         const balance = await contract.balanceOf(address, tokenId);
         
         if (balance > 0) {
-          // Get the game item data
-          const itemData = await contract.gameItems(tokenId);
-          
+          console.log(`Found token ${tokenId} with balance ${balance}`);
           nfts.push({
             id: tokenId.toString(),
-            name: itemData.name,
-            game: itemData.game,
-            type: itemData.itemType,
-            rarity: itemData.rarity,
+            name: `World ID Game Asset #${tokenId}`,
+            game: "World ID",
+            type: "Digital Asset",
+            rarity: "Epic",
             status: "In-Game",
-            image: "/placeholder.png",
-            description: `${itemData.name} - A ${itemData.rarity} ${itemData.itemType} from ${itemData.game}`
+            image: "/images/nfts/placeholder.webp", // Make sure this path exists
+            description: `World ID Game Asset Token #${tokenId}`
           });
         }
       } catch (error) {
@@ -63,9 +58,10 @@ export async function fetchWorldcoinNFTs(address: string): Promise<GameNFT[]> {
       }
     }
 
+    console.log("Found NFTs:", nfts);
     return nfts;
   } catch (error) {
     console.error('Error fetching Worldcoin NFTs:', error);
-    return [];
+    throw error; // Let the component handle the error
   }
 }
