@@ -23,6 +23,7 @@ export default function RootLayout({
       ssr: false,
     }
   );
+
   return (
     <html lang="en">
       <NextAuthProvider>

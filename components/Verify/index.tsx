@@ -102,6 +102,7 @@ export const VerifyBlock = ({ onVerificationSuccess }: VerifyBlockProps) => {
 
     return () => {
       MiniKit.unsubscribe(ResponseEvent.MiniAppVerifyAction);
+      console.log("Cleanup: Unsubscribed from MiniKit events");
     };
   }, [onVerificationSuccess]);
 

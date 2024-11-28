@@ -1,4 +1,3 @@
-// app/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -16,11 +15,19 @@ export default function Home() {
   const { data: session } = useSession();
   const [isHumanVerified, setIsHumanVerified] = useState(false);
   const [verificationData, setVerificationData] = useState<any>(null);
+  const [worldcoinAddress, setWorldcoinAddress] = useState<string>("");
 
   const handleVerificationSuccess = (data: any) => {
     console.log("World ID verification successful:", data);
     setVerificationData(data);
     setIsHumanVerified(true);
+    
+    if (data.worldcoinAddress) {
+      console.log("Setting Worldcoin address in Home:", data.worldcoinAddress);
+      setWorldcoinAddress(data.worldcoinAddress);
+    } else {
+      console.warn("No worldcoinAddress in verification data:", data);
+    }
   };
 
   const hasFullAccess = session && isHumanVerified;
@@ -115,7 +122,10 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
-              <NFTInventory isVerified={true} />
+              <NFTInventory 
+                isVerified={true} 
+                worldcoinAddress={worldcoinAddress}
+              />
             </motion.div>
           ) : (
             <motion.div
