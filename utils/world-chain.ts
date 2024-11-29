@@ -32,25 +32,47 @@ export async function fetchWorldcoinNFTs(address: string): Promise<GameNFT[]> {
     const contract = getNFTContract(provider);
     const nfts: GameNFT[] = [];
 
-    const tokenIdsToCheck = [1, 50];
+    // Check a wider range of token IDs
+    const maxTokenId = 100; // Adjust this based on your expected maximum token ID
     
-    for (const tokenId of tokenIdsToCheck) {
+    for (let tokenId = 1; tokenId <= maxTokenId; tokenId++) {
       try {
         console.log(`Checking balance for token ${tokenId}`);
         const balance = await contract.balanceOf(address, tokenId);
         
         if (balance > 0) {
           console.log(`Found token ${tokenId} with balance ${balance}`);
-          nfts.push({
-            id: tokenId.toString(),
-            name: `World ID Game Asset #${tokenId}`,
-            game: "World ID",
-            type: "Digital Asset",
-            rarity: "Epic",
-            status: "In-Game",
-            image: "/images/nfts/placeholder.webp", // Make sure this path exists
-            description: `World ID Game Asset Token #${tokenId}`
-          });
+          
+          try {
+            const metadataUrl = `https://boorich.github.io/NFT_Metadata/metadata/${tokenId}.json`;
+            console.log('Fetching metadata from:', metadataUrl);
+            
+            const response = await fetch(metadataUrl);
+            const metadata = await response.json();
+            
+            nfts.push({
+              id: tokenId.toString(),
+              name: metadata.name || `World ID Game Asset #${tokenId}`,
+              game: "World ID",
+              type: "Digital Asset",
+              rarity: "Epic",
+              status: "In-Game",
+              image: metadata.image || "/images/nfts/placeholder.webp",
+              description: metadata.description || `World ID Game Asset Token #${tokenId}`
+            });
+          } catch (metadataError) {
+            console.warn(`Failed to fetch metadata for token ${tokenId}, using fallback`, metadataError);
+            nfts.push({
+              id: tokenId.toString(),
+              name: `World ID Game Asset #${tokenId}`,
+              game: "World ID",
+              type: "Digital Asset",
+              rarity: "Epic",
+              status: "In-Game",
+              image: "/images/nfts/placeholder.webp",
+              description: `World ID Game Asset Token #${tokenId}`
+            });
+          }
         }
       } catch (error) {
         console.error(`Error fetching token ${tokenId}:`, error);
@@ -58,10 +80,10 @@ export async function fetchWorldcoinNFTs(address: string): Promise<GameNFT[]> {
       }
     }
 
-    console.log("Found NFTs:", nfts);
+    console.log("Final NFTs array:", nfts);
     return nfts;
   } catch (error) {
     console.error('Error fetching Worldcoin NFTs:', error);
-    throw error; // Let the component handle the error
+    throw error;
   }
 }
