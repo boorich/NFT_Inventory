@@ -9,8 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.2",
+    "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.1",
+    "@tanstack/react-query": "^5.62.7",
+    "@wagmi/core": "^2.16.0",
     "@worldcoin/minikit-js": "1.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -22,8 +26,11 @@
     "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18",
+    "sonner": "^1.4.0",
     "tailwind-merge": "^2.5.4",
-    "ui": "link:@/components/ui"
+    "ui": "link:@/components/ui",
+    "viem": "^2.21.54",
+    "wagmi": "^2.14.0"
   },
   "devDependencies": {
     "@types/node": "^20",

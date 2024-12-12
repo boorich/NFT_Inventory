@@ -4,6 +4,8 @@ import "./globals.css";
 import MiniKitProvider from "@/components/minikit-provider";
 import dynamic from "next/dynamic";
 import NextAuthProvider from "@/components/next-auth-provider";
+import { Providers } from "./providers";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,13 +28,18 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <NextAuthProvider>
-        <ErudaProvider>
-          <MiniKitProvider>
-            <body className={inter.className}>{children}</body>
-          </MiniKitProvider>
-        </ErudaProvider>
-      </NextAuthProvider>
+      <body className={inter.className}>
+        <NextAuthProvider>
+          <Providers>
+            <ErudaProvider>
+              <MiniKitProvider>
+                {children}
+                <Toaster />
+              </MiniKitProvider>
+            </ErudaProvider>
+          </Providers>
+        </NextAuthProvider>
+      </body>
     </html>
   );
 }

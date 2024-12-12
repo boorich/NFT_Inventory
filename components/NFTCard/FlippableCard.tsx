@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { GameButton } from '../ui/game-button';
 import { Share2, ArrowRightLeft, Info, Shield } from 'lucide-react';
 import type { GameNFT } from '@/types';
+import { TransferModal } from './modals/TransferModal';
 
 const RARITY_COLORS = {
   Common: "bg-gray-100",
@@ -20,6 +21,7 @@ interface FlippableCardProps {
 
 export const FlippableCard = ({ nft }: FlippableCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   return (
     <motion.div 
@@ -81,7 +83,7 @@ export const FlippableCard = ({ nft }: FlippableCardProps) => {
                 className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-white"
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle transfer
+                  setShowTransferModal(true);
                 }}
               >
                 <ArrowRightLeft className="w-5 h-5 mb-1" />
@@ -142,6 +144,12 @@ export const FlippableCard = ({ nft }: FlippableCardProps) => {
           </div>
         </div>
       </motion.div>
+
+      <TransferModal 
+        nft={nft}
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
+      />
     </motion.div>
   );
 };
