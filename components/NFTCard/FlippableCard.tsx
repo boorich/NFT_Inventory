@@ -2,9 +2,17 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GameButton } from '../ui/game-button';
-import { Share2, ArrowRightLeft, Info, Shield } from 'lucide-react';
+import { Share2, ArrowRightLeft, Info, Shield, Twitter, Facebook, Copy, Check } from 'lucide-react';
 import type { GameNFT } from '@/types';
 import { TransferModal } from './modals/TransferModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import type { MouseEvent } from 'react';
 
 const RARITY_COLORS = {
   Common: "bg-gray-100",
@@ -16,12 +24,46 @@ const RARITY_COLORS = {
 } as const;
 
 interface FlippableCardProps {
-  nft: GameNFT;
+  nft: GameNFT & {
+    contractAddress: `0x${string}`;
+    tokenId: string;
+  };
 }
 
 export const FlippableCard = ({ nft }: FlippableCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/nft/${nft.id}` : '';
+  const shareText = `Check out my ${nft.name} NFT from ${nft.game}!`;
+
+  const handleShare = async (platform: 'twitter' | 'facebook' | 'copy') => {
+    switch (platform) {
+      case 'twitter':
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+          '_blank'
+        );
+        break;
+      case 'facebook':
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+          '_blank'
+        );
+        break;
+      case 'copy':
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          setIsCopied(true);
+          toast.success('Link copied to clipboard!');
+          setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+          toast.error('Failed to copy link');
+        }
+        break;
+    }
+  };
 
   return (
     <motion.div 
@@ -81,7 +123,7 @@ export const FlippableCard = ({ nft }: FlippableCardProps) => {
             <div className="grid grid-cols-2 gap-3 flex-1">
               <button 
                 className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-white"
-                onClick={(e) => {
+                onClick={(e: MouseEvent) => {
                   e.stopPropagation();
                   setShowTransferModal(true);
                 }}
@@ -90,20 +132,51 @@ export const FlippableCard = ({ nft }: FlippableCardProps) => {
                 <span className="text-sm">Transfer</span>
               </button>
 
-              <button 
-                className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Handle share
-                }}
-              >
-                <Share2 className="w-5 h-5 mb-1" />
-                <span className="text-sm">Share</span>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-white"
+                    onClick={(e: MouseEvent) => e.stopPropagation()}
+                  >
+                    <Share2 className="w-5 h-5 mb-1" />
+                    <span className="text-sm">Share</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  className="w-48" 
+                  onClick={(e: MouseEvent) => e.stopPropagation()}
+                >
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => handleShare('twitter')}
+                  >
+                    <Twitter className="w-4 h-4" />
+                    Share on Twitter
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => handleShare('facebook')}
+                  >
+                    <Facebook className="w-4 h-4" />
+                    Share on Facebook
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => handleShare('copy')}
+                  >
+                    {isCopied ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                    Copy Link
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <button 
                 className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-white"
-                onClick={(e) => {
+                onClick={(e: MouseEvent) => {
                   e.stopPropagation();
                   // Handle details
                 }}
@@ -114,7 +187,7 @@ export const FlippableCard = ({ nft }: FlippableCardProps) => {
 
               <button 
                 className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-white"
-                onClick={(e) => {
+                onClick={(e: MouseEvent) => {
                   e.stopPropagation();
                   // Handle protect
                 }}
@@ -133,7 +206,7 @@ export const FlippableCard = ({ nft }: FlippableCardProps) => {
                 variant="ghost"
                 size="sm"
                 className="w-full text-white hover:text-white hover:bg-white/10"
-                onClick={(e) => {
+                onClick={(e: MouseEvent) => {
                   e.stopPropagation();
                   // Handle more options
                 }}
